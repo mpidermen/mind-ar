@@ -279,15 +279,22 @@ body.page-ar {
   overflow: hidden;
   background: #000;
 }
-body.page-ar #arScene,
-body.page-ar #arScene video,
-body.page-ar #arScene canvas {
+body.page-ar video {
   position: fixed !important;
-  top: 0;
-  left: 0;
+  top: 0 !important;
+  left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
   object-fit: cover !important;
+}
+
+/* Canvas render MindAR (dibuat A-Frame di dalam #arScene) */
+body.page-ar canvas.a-canvas {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
 }
 
 /* A-Frame menyisipkan tombol VR & modal orientasi bawaan; kita sembunyikan
