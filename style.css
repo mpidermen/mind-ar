@@ -279,6 +279,16 @@ body.page-ar {
   overflow: hidden;
   background: #000;
 }
+body.page-ar #arScene,
+body.page-ar #arScene video,
+body.page-ar #arScene canvas {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+}
 
 /* A-Frame menyisipkan tombol VR & modal orientasi bawaan; kita sembunyikan
    karena UI kustom kita sendiri sudah menangani semuanya. */
