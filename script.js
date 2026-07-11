@@ -74,16 +74,21 @@ function initArPage() {
 
   // Kamera & mesin tracking MindAR sudah siap -> sembunyikan overlay loading
   scene.addEventListener('arReady', () => {
+    console.log("AR READY");
     loadingOverlay.classList.add('is-hidden');
   });
 
   // MindAR gagal start (biasanya karena izin kamera ditolak/tidak ada kamera)
-  scene.addEventListener('arError', () => {
+  scene.addEventListener('arError', (e) => {
+    console.error("AR ERROR:", e);
+
     loadingOverlay.classList.add('is-hidden');
+
     if (errorMessage) {
       errorMessage.innerHTML =
-        'Tidak dapat mengakses kamera.<br />Pastikan izin kamera diaktifkan, lalu muat ulang halaman.';
+        'AR Error. Lihat Console untuk detail.';
     }
+
     errorOverlay.hidden = false;
   });
 
