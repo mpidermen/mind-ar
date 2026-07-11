@@ -40,7 +40,6 @@ function initLandingPage() {
    ============================================================================ */
 function initArPage() {
   const scene = document.getElementById('arScene');
-  console.log("Scene ditemukan");
   if (!scene) return; // bukan sedang di halaman AR
 
   const loadingOverlay = document.getElementById('loadingOverlay');
@@ -52,7 +51,6 @@ function initArPage() {
 
   const video = document.getElementById('ar-video');
   const target = document.getElementById('target0');
-  console.log("Target ditemukan");
 
   /* ---------------- Tombol kembali ke landing page ---------------- */
   [backBtn, errorBackBtn].forEach((btn) => {
@@ -75,24 +73,17 @@ function initArPage() {
   /* ---------------- Event dari MindAR pada <a-scene> ---------------- */
 
   // Kamera & mesin tracking MindAR sudah siap -> sembunyikan overlay loading
-  scene.addEventListener('loaded', () => {
-    setTimeout(() => {
-      loadingOverlay.classList.add('is-hidden');
-    }, 1000);
+  scene.addEventListener('arReady', () => {
+    loadingOverlay.classList.add('is-hidden');
   });
 
   // MindAR gagal start (biasanya karena izin kamera ditolak/tidak ada kamera)
-  scene.addEventListener('arError', (e) => {
-
-    console.error("MindAR Error:", e);
-
+  scene.addEventListener('arError', () => {
     loadingOverlay.classList.add('is-hidden');
-
     if (errorMessage) {
       errorMessage.innerHTML =
-        'Tidak dapat mengakses kamera.<br>Silakan lihat Console untuk detail error.';
+        'Tidak dapat mengakses kamera.<br />Pastikan izin kamera diaktifkan, lalu muat ulang halaman.';
     }
-
     errorOverlay.hidden = false;
   });
 
