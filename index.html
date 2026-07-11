@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>ScanReveal — WebAR Image Tracking</title>
+  <meta name="description" content="Arahkan kamera ke gambar target dan lihat konten AR muncul secara langsung." />
+
+  <!-- Favicon kecil bertema "viewfinder" (boleh diganti) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%236C5CE7'/%3E%3Cpath d='M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 1-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3' stroke='%234FD1C5' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <!-- Google Fonts: Sora (display) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="page-landing">
+
+  <!-- Blob dekoratif lembut di background, murni CSS, tidak menghalangi teks -->
+  <div class="bg-blob bg-blob--one" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob--two" aria-hidden="true"></div>
+
+  <main class="landing">
+    <p class="landing__eyebrow">WEB AUGMENTED REALITY</p>
+
+    <!-- ✏️ EDIT DI SINI: judul & deskripsi landing page -->
+    <h1 class="landing__title">Pindai gambarnya,<br /><span>ungkap keajaibannya.</span></h1>
+    <p class="landing__desc">
+      Arahkan kamera ke gambar target, dan konten interaktif akan langsung muncul
+      melayang di atasnya — tanpa perlu instal aplikasi apa pun.
+    </p>
+
+    <!-- Tombol utama masuk ke halaman kamera AR -->
+    <button id="startArBtn" class="scan-button corner-frame" type="button">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+      <span class="scan-button__label">Mulai AR</span>
+    </button>
+
+    <p class="landing__hint">Kamu akan diminta mengizinkan akses kamera.</p>
+  </main>
+
+  <!-- ============================================================
+       OVERLAY TRANSISI
+       Muncul sesaat setelah tombol "Mulai AR" ditekan, sebelum
+       browser pindah ke ar.html. Durasinya diatur di script.js.
+       ============================================================ -->
+  <div id="transitionOverlay" class="transition-overlay" aria-hidden="true">
+    <div class="transition-overlay__frame corner-frame">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+    </div>
+    <p class="transition-overlay__text">Menyiapkan kamera…</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

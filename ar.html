@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Kamera AR — ScanReveal</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%236C5CE7'/%3E%3Cpath d='M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 1-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3' stroke='%234FD1C5' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ==================================================================
+       LIBRARY: A-Frame + MindAR (versi stabil terbaru, per Juli 2026)
+       PENTING: A-Frame harus dimuat SEBELUM mindar-image-aframe.
+       Jangan pakai AR.js — proyek ini murni MindAR + A-Frame.
+       ================================================================== -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body class="page-ar">
+
+  <!-- =============== OVERLAY: Loading =============== -->
+  <!-- Tampil selagi kamera & mesin tracking MindAR sedang disiapkan -->
+  <div id="loadingOverlay" class="ar-overlay ar-overlay--loading">
+    <div class="ar-loading-frame corner-frame">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+      <div class="ar-spinner" aria-hidden="true"></div>
+    </div>
+    <p>Menyiapkan kamera AR…</p>
+  </div>
+
+  <!-- =============== OVERLAY: Error =============== -->
+  <!-- Tampil bila kamera gagal diakses ATAU targets.mind belum diganti -->
+  <div id="errorOverlay" class="ar-overlay ar-overlay--error" hidden>
+    <p id="errorMessage">
+      Tidak dapat mengakses kamera.<br />Pastikan izin kamera diaktifkan, lalu muat ulang halaman.
+    </p>
+    <button id="errorBackBtn" class="ar-pill-btn" type="button">Kembali</button>
+  </div>
+
+  <!-- =============== OVERLAY: Panduan scan =============== -->
+  <!-- Tampil sebelum marker terdeteksi, hilang otomatis saat targetFound -->
+  <div id="scanGuide" class="scan-guide corner-frame">
+    <span class="corner tl"></span>
+    <span class="corner tr"></span>
+    <span class="corner bl"></span>
+    <span class="corner br"></span>
+    <p class="scan-guide__text">Arahkan kamera ke gambar target</p>
+  </div>
+
+  <!-- Tombol kembali ke landing page -->
+  <button id="backBtn" class="ar-pill-btn ar-pill-btn--floating" type="button">← Kembali</button>
+
+  <!-- ======================================================================================
+       A-FRAME SCENE
+       ----------------------------------------------------------------------------------------
+       imageTargetSrc      : lokasi file targets.mind. Ganti path ini bila kamu memindah filenya.
+       autoStart           : kamera otomatis menyala saat scene siap.
+       uiScanning/uiLoading/uiError : dimatikan (no) karena kita pakai overlay HTML/CSS sendiri.
+
+       ✏️ PARAMETER STABILITAS TRACKING (boleh diutak-atik sesuai kebutuhan):
+       filterMinCF   : makin KECIL nilainya -> tracking makin stabil/halus, tapi sedikit lebih "lambat".
+       filterBeta    : makin KECIL nilainya -> makin stabil, makin BESAR -> makin responsif tapi bergetar.
+       warmupTolerance : jumlah frame berturut-turut sebelum target dianggap "found" (anti false-positive).
+       missTolerance   : jumlah frame berturut-turut sebelum target dianggap "lost" (anti kedip saat goyang).
+       Nilai di bawah ini sudah dioptimalkan condong ke arah STABIL sesuai kebutuhan proyek ini.
+       ====================================================================================== -->
+  <a-scene
+    id="arScene"
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; filterMinCF: 0.0001; filterBeta: 10; warmupTolerance: 3; missTolerance: 5;"
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+  >
+
+    <!-- ============================================================
+         ASSETS
+         ✏️ EDIT DI SINI: ganti src="" dengan file asetmu sendiri.
+         Nama file boleh berbeda, asal path-nya disesuaikan.
+         ============================================================ -->
+    <a-assets>
+      <video
+        id="ar-video"
+        src="./assets/video.mp4"
+        preload="auto"
+        loop
+        muted
+        playsinline
+        crossorigin="anonymous"
+      ></video>
+
+      <img id="ar-photo" src="./assets/photo.png" crossorigin="anonymous" />
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- ======================================================================
+         TARGET CONTAINER
+         targetIndex: 0 -> index gambar target di dalam targets.mind (gambar pertama = 0)
+         Semua entity di dalam <a-entity> ini otomatis mengikuti posisi & rotasi marker asli.
+         ====================================================================== -->
+    <a-entity id="target0" mindar-image-target="targetIndex: 0">
+
+      <!-- ============================================================
+           1) VIDEO
+           ✏️ EDIT DI SINI: position / rotation / scale / width / height
+           Satuan A-Frame adalah meter (untuk posisi/ukuran) & derajat (rotasi).
+           width & height di bawah berpatokan pada rasio 16:9 (video landscape).
+           ============================================================ -->
+      <a-video
+        id="videoPlane"
+        src="#ar-video"
+        position="0 0 0"
+        rotation="0 0 0"
+        scale="1 1 1"
+        width="1"
+        height="0.5625"
+      ></a-video>
+
+      <!-- ============================================================
+           2) FOTO / GAMBAR
+           ✏️ EDIT DI SINI: position / rotation / scale / width / height
+           Posisi Y digeser ke atas (0.6) supaya tidak menumpuk dengan video.
+           ============================================================ -->
+      <a-image
+        id="photoPlane"
+        src="#ar-photo"
+        position="0 0.6 0"
+        rotation="0 0 0"
+        scale="1 1 1"
+        width="0.5"
+        height="0.5"
+      ></a-image>
+
+    </a-entity>
+  </a-scene>
+
+  <script src="script.js"></script>
+</body>
+</html>

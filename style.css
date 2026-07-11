@@ -1,0 +1,433 @@
+/* ============================================================================
+   STYLE.CSS
+   Dipakai bersama oleh index.html (landing page) dan ar.html (halaman AR).
+   Struktur file ini:
+   1. Reset & base
+   2. Design tokens (warna, font, radius, spacing) — ✏️ paling sering diedit
+   3. Background blob dekoratif (landing)
+   4. Landing hero
+   5. Komponen "corner-frame" (bingkai sudut ala viewfinder kamera) — dipakai ulang
+   6. Tombol "Mulai AR"
+   7. Overlay transisi (index.html -> ar.html)
+   8. Halaman AR: loading / error / scan guide / tombol kembali
+   9. Responsive
+   10. Preferensi aksesibilitas (reduced motion)
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------- */
+/* 1. RESET & BASE                                                        */
+/* ---------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+img, video {
+  max-width: 100%;
+  display: block;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 2. DESIGN TOKENS — ✏️ ganti warna / font di sini untuk restyle cepat   */
+/* ---------------------------------------------------------------------- */
+:root {
+  /* Warna latar (gradien lembut lavender -> mint) */
+  --color-bg-a: #f4f1ff;
+  --color-bg-b: #eaf6f3;
+
+  /* Warna teks */
+  --color-ink: #2c2a4a;       /* teks utama, indigo gelap lembut (bukan hitam pekat) */
+  --color-ink-soft: #6b6890;  /* teks sekunder / deskripsi */
+
+  /* Warna aksen */
+  --color-primary: #6c5ce7;      /* tombol utama, judul aksen */
+  --color-primary-deep: #5642d6; /* hover / active */
+  --color-accent: #4fd1c5;       /* bingkai sudut "viewfinder", elemen scan */
+  --color-warn: #e8735c;         /* status error, dipakai secukupnya saja */
+
+  --color-surface: #ffffff;
+
+  /* Tipografi */
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  /* Radius & spacing */
+  --radius-lg: 28px;
+  --radius-md: 16px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+
+  /* Bayangan lembut */
+  --shadow-soft: 0 20px 45px -20px rgba(108, 92, 231, 0.35);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 3. BACKGROUND BLOB DEKORATIF (hanya landing page)                      */
+/* ---------------------------------------------------------------------- */
+body.page-landing {
+  min-height: 100vh;
+  background: linear-gradient(160deg, var(--color-bg-a) 0%, var(--color-bg-b) 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.45;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-blob--one {
+  width: 380px;
+  height: 380px;
+  top: -120px;
+  left: -100px;
+  background: var(--color-primary);
+}
+
+.bg-blob--two {
+  width: 320px;
+  height: 320px;
+  bottom: -100px;
+  right: -80px;
+  background: var(--color-accent);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 4. LANDING HERO                                                        */
+/* ---------------------------------------------------------------------- */
+.landing {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.landing__eyebrow {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: var(--color-primary);
+  text-transform: uppercase;
+}
+
+.landing__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 5vw + 1rem, 3.4rem);
+  line-height: 1.12;
+  color: var(--color-ink);
+}
+
+.landing__title span {
+  color: var(--color-primary);
+}
+
+.landing__desc {
+  font-size: clamp(1rem, 1.2vw + 0.7rem, 1.15rem);
+  line-height: 1.6;
+  color: var(--color-ink-soft);
+  max-width: 440px;
+  margin-top: var(--space-1);
+}
+
+.landing__hint {
+  font-size: 0.85rem;
+  color: var(--color-ink-soft);
+  margin-top: var(--space-1);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 5. KOMPONEN "CORNER-FRAME"                                             */
+/* Elemen signature: bingkai 4 sudut ala viewfinder kamera.               */
+/* Dipakai ulang di: tombol Mulai AR, overlay transisi, loading, scan     */
+/* guide — supaya bahasa visual "kamera & pemindaian" konsisten di        */
+/* seluruh alur.                                                         */
+/* ---------------------------------------------------------------------- */
+.corner-frame {
+  position: relative;
+}
+
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--color-accent);
+  transition: opacity 0.3s ease;
+}
+
+.corner.tl { top: -3px;    left: -3px;   border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
+.corner.tr { top: -3px;    right: -3px;  border-left: none;  border-bottom: none; border-radius: 0 8px 0 0; }
+.corner.bl { bottom: -3px; left: -3px;   border-right: none; border-top: none;    border-radius: 0 0 0 8px; }
+.corner.br { bottom: -3px; right: -3px;  border-left: none;  border-top: none;    border-radius: 0 0 8px 0; }
+
+/* ---------------------------------------------------------------------- */
+/* 6. TOMBOL "MULAI AR"                                                   */
+/* ---------------------------------------------------------------------- */
+.scan-button {
+  margin-top: var(--space-3);
+  padding: 1.15rem 3.2rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  animation: scan-pulse 2.6s ease-in-out infinite;
+}
+
+.scan-button:hover {
+  background: var(--color-primary-deep);
+  transform: translateY(-2px);
+}
+
+.scan-button:active {
+  transform: translateY(0);
+}
+
+.scan-button__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+/* Sudut bingkai tombol berdenyut halus, menandakan "siap memindai" */
+@keyframes scan-pulse {
+  0%, 100% { box-shadow: var(--shadow-soft); }
+  50% { box-shadow: 0 20px 55px -14px rgba(79, 209, 197, 0.55); }
+}
+
+/* ---------------------------------------------------------------------- */
+/* 7. OVERLAY TRANSISI (index.html -> ar.html)                            */
+/* ---------------------------------------------------------------------- */
+.transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: linear-gradient(160deg, var(--color-bg-a) 0%, var(--color-bg-b) 100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease;
+}
+
+.transition-overlay.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.transition-overlay__frame {
+  width: 88px;
+  height: 88px;
+  animation: frame-breathe 1.4s ease-in-out infinite;
+}
+
+@keyframes frame-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.9); opacity: 0.6; }
+}
+
+.transition-overlay__text {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--color-ink-soft);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 8. HALAMAN AR                                                          */
+/* ---------------------------------------------------------------------- */
+body.page-ar {
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+/* A-Frame menyisipkan tombol VR & modal orientasi bawaan; kita sembunyikan
+   karena UI kustom kita sendiri sudah menangani semuanya. */
+.a-enter-vr, .a-orientation-modal {
+  display: none !important;
+}
+
+.ar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-3);
+  background: rgba(20, 18, 40, 0.92);
+  color: #ffffff;
+  transition: opacity 0.4s ease;
+}
+
+.ar-overlay--loading.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ar-overlay--error p {
+  max-width: 320px;
+  line-height: 1.6;
+  color: #ffe3dc;
+}
+
+.ar-loading-frame {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ar-spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--color-accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Panduan scan: kotak besar transparan di tengah layar kamera,
+   menandai area ideal untuk menaruh gambar target */
+.scan-guide {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(78vw, 340px);
+  aspect-ratio: 1 / 1;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: var(--space-3);
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.scan-guide.is-hidden {
+  opacity: 0;
+}
+
+.scan-guide .corner {
+  width: 32px;
+  height: 32px;
+}
+
+.scan-guide__text {
+  background: rgba(20, 18, 40, 0.55);
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+/* Tombol pil (dipakai untuk "Kembali") */
+.ar-pill-btn {
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  background: rgba(20, 18, 40, 0.55);
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s ease;
+}
+
+.ar-pill-btn:hover {
+  background: rgba(20, 18, 40, 0.8);
+}
+
+.ar-pill-btn--floating {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 30;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 9. RESPONSIVE                                                          */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .scan-button {
+    padding: 1rem 2.4rem;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .landing__title {
+    line-height: 1.18;
+  }
+
+  .bg-blob--one, .bg-blob--two {
+    width: 240px;
+    height: 240px;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* 10. AKSESIBILITAS: hormati preferensi reduced-motion pengguna          */
+/* ---------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .scan-button,
+  .transition-overlay__frame,
+  .ar-spinner {
+    animation: none !important;
+  }
+
+  .scan-button,
+  .ar-overlay,
+  .transition-overlay,
+  .scan-guide {
+    transition: none !important;
+  }
+}
