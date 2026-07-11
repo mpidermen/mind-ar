@@ -43,11 +43,11 @@ function initArPage() {
   if (!scene) return; // bukan sedang di halaman AR
 
   const loadingOverlay = document.getElementById('loadingOverlay');
-  const errorOverlay = document.getElementById('errorOverlay');
-  const errorMessage = document.getElementById('errorMessage');
+  const errorOverlay = null;
+  const errorMessage = null;
   const scanGuide = document.getElementById('scanGuide');
   const backBtn = document.getElementById('backBtn');
-  const errorBackBtn = document.getElementById('errorBackBtn');
+  const errorBackBtn = null;
 
   const video = document.getElementById('ar-video');
   const target = document.getElementById('target0');
@@ -80,16 +80,9 @@ function initArPage() {
 
   // MindAR gagal start (biasanya karena izin kamera ditolak/tidak ada kamera)
   scene.addEventListener('arError', (e) => {
-    console.error("AR ERROR:", e);
+    console.error("MindAR Error:", e);
 
     loadingOverlay.classList.add('is-hidden');
-
-    if (errorMessage) {
-      errorMessage.innerHTML =
-        'AR Error. Lihat Console untuk detail.';
-    }
-
-    errorOverlay.hidden = false;
   });
 
   /* ---------------- Event dari MindAR pada target entity ---------------- */
